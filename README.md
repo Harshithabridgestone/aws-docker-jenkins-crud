@@ -1,4 +1,21 @@
-Modified by Harshitha for AWS Docker Jenkins CI/CD project.# Node.js PostgreSQL CRUD example with Express Rest APIs
+# AWS Docker Jenkins CRUD Deployment
+
+This project demonstrates the deployment of a Node.js CRUD application with PostgreSQL using Docker containers on AWS EC2.
+
+## Modifications made by Harshitha
+
+- Containerized the application using Docker.
+- Configured PostgreSQL database in Docker.
+- Created a Jenkins CI/CD pipeline.
+- Added Dockerfile for image creation.
+- Configured an Internal Application Load Balancer (ALB).
+- Integrated the application with PostgreSQL.
+- Verified Create, Read, Update and Delete (CRUD) operations.
+- Successfully deployed on AWS EC2.
+
+Original project:
+https://github.com/bezkoder/node-js-postgresql-crud-example
+# Node.js PostgreSQL CRUD example with Express Rest APIs
 
 Full Article with implementation:
 > [Node.js PostgreSQL CRUD example with Express Rest APIs](https://www.bezkoder.com/node-express-sequelize-postgresql/)
