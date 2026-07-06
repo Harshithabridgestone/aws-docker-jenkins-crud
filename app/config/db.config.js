@@ -1,9 +1,9 @@
 module.exports = {
-  HOST: "mysql-db",
+  HOST: "postgres-db",
   USER: "appuser",
   PASSWORD: "apppassword",
   DB: "appdb",
-  dialect: "mysql",
+  dialect: "postgres",
   pool: {
     max: 5,
     min: 0,
