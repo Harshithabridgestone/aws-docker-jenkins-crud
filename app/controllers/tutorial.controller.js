@@ -39,7 +39,9 @@ exports.findAll = (req, res) => {
 
   Tutorial.findAll({ where: condition })
     .then(data => {
-      res.send(data);
+      res.send({message: "Deployed through Jenkins CI/CD by Harshitha", 
+      data: data 
+      });
     })
     .catch(err => {
       res.status(500).send({
