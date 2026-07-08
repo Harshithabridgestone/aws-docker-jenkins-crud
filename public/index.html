@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Tutorial Learning Tracker</title>
+  <style>
+    body { margin: 0; font-family: Arial, sans-serif; background: #f3f6fb; color: #222; }
+    header { background: #1f4e79; color: white; padding: 24px; text-align: center; }
+    header h1 { margin: 0; font-size: 28px; }
+    header p { margin: 8px 0 0; font-size: 14px; }
+
+    .container {
+      width: 90%;
+      margin: 30px auto;
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+    }
+
+    h2 { color: #1f4e79; }
+
+    .form-section {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+
+    input, select {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      min-width: 230px;
+    }
+
+    button {
+      padding: 10px 14px;
+      border: none;
+      border-radius: 6px;
+      color: white;
+      cursor: pointer;
+      background: #1f4e79;
+    }
+
+    .edit { background: #2e7d32; }
+    .delete { background: #c62828; }
+    .cancel { background: #777; }
+
+    .search-box {
+      margin-bottom: 15px;
+      width: 300px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th {
+      background: #1f4e79;
+      color: white;
+      padding: 12px;
+      text-align: left;
+    }
+
+    td {
+      border-bottom: 1px solid #ddd;
+      padding: 10px;
+      font-size: 14px;
+    }
+
+    tr:hover { background: #f5f9ff; }
+
+    .completed {
+      color: #2e7d32;
+      font-weight: bold;
+    }
+
+    .progress {
+      color: #f57c00;
+      font-weight: bold;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 25px;
+      font-size: 13px;
+      color: #666;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Tutorial Learning Tracker</h1>
+    <p>AWS EC2 | Docker | Jenkins | PostgreSQL | Route53</p>
+  </header>
+
+  <div class="container">
+    <h2 id="formTitle">Add Learning Tutorial</h2>
+
+    <input type="hidden" id="tutorialId">
+
+    <div class="form-section">
+      <input type="text" id="title" placeholder="Enter tutorial title">
+      <input type="text" id="description" placeholder="Enter what you learned">
+
+      <select id="published">
+        <option value="false">In Progress</option>
+        <option value="true">Completed</option>
+      </select>
+
+      <button id="submitButton" onclick="saveTutorial()">Add Tutorial</button>
+      <button class="cancel" id="cancelButton" onclick="cancelEdit()" style="display:none;">Cancel</button>
+    </div>
+
+    <h2>Tutorial List</h2>
+
+    <input class="search-box" type="text" id="searchInput" placeholder="Search by title..." onkeyup="searchTutorials()">
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Tutorial Title</th>
+          <th>Description</th>
+          <th>Status</th>
+          <th>Created At</th>
+          <th>Updated At</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="tutorialTable"></tbody>
+    </table>
+
+    <div class="footer">
+      Developed by Harshitha N for AWS Docker Jenkins PostgreSQL CI/CD Project
+    </div>
+  </div>
+
+  <script>
+    const API_URL = "/api/tutorials";
+    let allTutorials = [];
+    let editMode = false;
+
+    function loadTutorials() {
+      fetch(API_URL)
+        .then(response => response.json())
+        .then(result => {
+          allTutorials = Array.isArray(result) ? result : result.data;
+          displayTutorials(allTutorials);
+        });
+    }
+
+    function displayTutorials(tutorials) {
+      const table = document.getElementById("tutorialTable");
+      table.innerHTML = "";
+
+      tutorials.forEach(tutorial => {
+        const statusText = tutorial.published ? "Completed" : "In Progress";
+        const statusClass = tutorial.published ? "completed" : "progress";
+
+        table.innerHTML += `
+          <tr>
+            <td>${tutorial.id}</td>
+            <td>${tutorial.title}</td>
+            <td>${tutorial.description}</td>
+            <td class="${statusClass}">${statusText}</td>
+            <td>${formatDate(tutorial.createdAt)}</td>
+            <td>${formatDate(tutorial.updatedAt)}</td>
+            <td>
+              <button class="edit" onclick="startEdit(${tutorial.id})">Edit</button>
+              <button class="delete" onclick="deleteTutorial(${tutorial.id})">Delete</button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function saveTutorial() {
+      const id = document.getElementById("tutorialId").value;
+      const title = document.getElementById("title").value.trim();
+      const description = document.getElementById("description").value.trim();
+      const published = document.getElementById("published").value === "true";
+
+      if (!title || !description) {
+        alert("Please enter title and description");
+        return;
+      }
+
+      const method = editMode ? "PUT" : "POST";
+      const url = editMode ? `${API_URL}/${id}` : API_URL;
+
+      fetch(url, {
+        method: method,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: title,
+          description: description,
+          published: published
+        })
+      })
+      .then(() => {
+        resetForm();
+        loadTutorials();
+      });
+    }
+
+    function startEdit(id) {
+      const tutorial = allTutorials.find(item => item.id === id);
+      if (!tutorial) return;
+
+      editMode = true;
+
+      document.getElementById("tutorialId").value = tutorial.id;
+      document.getElementById("title").value = tutorial.title;
+      document.getElementById("description").value = tutorial.description;
+      document.getElementById("published").value = tutorial.published ? "true" : "false";
+
+      document.getElementById("formTitle").innerText = "Edit Learning Tutorial";
+      document.getElementById("submitButton").innerText = "Save Changes";
+      document.getElementById("cancelButton").style.display = "inline-block";
+    }
+
+    function cancelEdit() {
+      resetForm();
+    }
+
+    function resetForm() {
+      editMode = false;
+      document.getElementById("tutorialId").value = "";
+      document.getElementById("title").value = "";
+      document.getElementById("description").value = "";
+      document.getElementById("published").value = "false";
+
+      document.getElementById("formTitle").innerText = "Add Learning Tutorial";
+      document.getElementById("submitButton").innerText = "Add Tutorial";
+      document.getElementById("cancelButton").style.display = "none";
+    }
+
+    function deleteTutorial(id) {
+      if (!confirm("Are you sure you want to delete this tutorial?")) return;
+
+      fetch(`${API_URL}/${id}`, { method: "DELETE" })
+        .then(() => loadTutorials());
+    }
+
+    function searchTutorials() {
+      const searchValue = document.getElementById("searchInput").value.toLowerCase();
+
+      const filtered = allTutorials.filter(tutorial =>
+        tutorial.title.toLowerCase().includes(searchValue)
+      );
+
+      displayTutorials(filtered);
+    }
+
+    function formatDate(dateValue) {
+      if (!dateValue) return "-";
+      return new Date(dateValue).toLocaleString();
+    }
+
+    loadTutorials();
+  </script>
+</body>
+</html>
