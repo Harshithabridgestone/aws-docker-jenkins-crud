@@ -135,7 +135,11 @@ exports.deleteAll = (req, res) => {
 
 // find all published Tutorial
 exports.findAllPublished = (req, res) => {
-  Tutorial.findAll({ where: { published: true } })
+	const title = req.query.title;
+	var condition = title ? { title: { [Op.iLike]: '%${title}%' } } : null;
+  Tutorial.findAll({ where: condition, 
+  order: [['id', 'ASC']]
+  })
     .then(data => {
       res.send(data);
     })
